@@ -1,0 +1,143 @@
+Datathon events in new york
+
+Evento 1. Terrorism 
+
+Fecha: October 23, 2014
+Dia de la semana: jueves
+Hora: c. 2:00 p.m. EDT
+Lugar:
+MS
+Decimal	40° 42′ 13.46″ N, 73° 47′ 56.9″ W
+40.70374, -73.799138	
+ 
+ 
+Geo URI
+geo:40.70374,-73.799138
+
+UTM
+18T 601446 4506564	
+
+Tipo de evento: Stabbing attack Islamic terrorism
+Description: Hatchet attack on four New York City Police Department (NYPD) officers in Jamaica, Queens; two officers were injured in the attack, while a passer-by was injured and the perpetrator killed in the ensuing shoot-out.
+1 muerto, 3 heridos
+ https://en.wikipedia.org/wiki/2014_Queens_hatchet_attack
+
+
+Evento 2. Terrorism 
+
+Fecha: December 20, 2014
+Dia de la semana: sabado
+
+
+Hora: 2:47 p.m. (EST)
+ 
+Lugar:
+DMS
+Decimal	40° 41′ 45.19″ N, 73° 56′ 47.38″ W
+40.695886, -73.946494	
+ 
+ 
+Geo URI
+geo:40.695886,-73.946494
+
+UTM
+18T 589008 4505532	
+
+Tipo de evento: Shotting hate crime
+Description: Ismaaiyl Abdullah Brinsley killed two on-duty New York City Police Department (NYPD) officers in the Bedford–Stuyvesant neighborhood of the New York City borough of Brooklyn, ostensibly as revenge for the death of Eric Garner and the shooting of Michael Brown, both of which were deaths of black men reported by police as resisting arrest. Brinsley then fled into the New York City Subway, where he committed suicide.
+
+3 muerto, 1 heridos
+https://en.wikipedia.org/wiki/2014_killings_of_NYPD_officers
+
+
+Evento 3. accidente
+Fecha: March 12, 2014
+
+Dia de la semana: miercoles
+
+
+Hora: 9:31 am.[1]
+
+ 
+Lugar:
+DMS
+Decimal	40° 47′ 58.88″ N, 73° 56′ 37.07″ W
+40.79969, -73.94363	
+ 
+ 
+Geo URI
+geo:40.79969,-73.94363
+
+UTM
+18T 589112 4517058	
+
+Tipo de evento: accidente explosion por fuga de gas
+
+Description:  in the East Harlem neighborhood of Manhattan in New York City. The explosion leveled two apartment buildings located just north of 116th Street at 1644 and 1646 Park Avenue,[2] killing eight people, injuring at least 70 others, and displacing 100 families. City officials initially pointed to a gas leak as the cause of the blast.[2][7] In June 2015, the National Transportation Safety Board (NTSB) blamed the explosion on failures by Consolidated Edison and the city.[8]
+
+8 muerto, 70 heridos
+
+https://en.wikipedia.org/wiki/2014_East_Harlem_gas_explosion
+
+Evento 4. accidente
+Fecha: March 26, 2015
+
+Dia de la semana: jueves
+
+
+Hora:  3:17 pm 
+
+ 
+Lugar:
+DMS
+Decimal	40° 43′ 42.16″ N, 73° 59′ 17.68″ W
+40.728376, -73.988245	
+ 
+ 
+Geo URI
+geo:40.728376,-73.988245
+
+UTM
+18T 585439 4509097	
+
+Tipo de evento: accidente explosion por fuga de gas
+
+A gas explosion occurred in the afternoon of March 26, 2015, in a building located at 121 Second Avenue, in the East Village neighborhood of Manhattan, New York City. The explosion was caused by an illegal tap into a gas main. The explosion caused two deaths, injured at least nineteen people, four critically, and the resulting fire completely destroyed three adjacent buildings at 119, 121, and 123 Second Avenue between East 7th Street and St. Marks Place.
+
+Explosion[edit]
+On the day of the explosion, Con Edison investigators had inspected a new gas pipe installation at 121 2nd Avenue, which remained turned off, and left about 2:45 PM. Shortly afterwards, the owner of the restaurant smelled gas and called the landlord of the building, but they neither reported it to Con Edison nor called 9-1-1.
+When the contractor in charge of the work being done and the landlord's son opened the basement door, an explosion occurred, with the front of the restaurant being blown out across the street. The first emergency calls started about 3:17 PM. New York City Mayor Bill de Blasio said, "The initial impact appears to have been caused by plumbing and gas work that was occurring inside 121 Second Avenue."[4][5] Eleven other buildings were evacuated as a result of the explosion, and Con Edison turned off the gas to the area. Several days later, some residents were allowed to return to some of the vacated buildings. City officials, including de Blasio, said they suspect that leaking natural gas was the cause of the explosion.
+The explosion sparked a seven alarm fire with 250 firefighters involved; four firefighters were treated for injuries.[6]
+
+
+2 muerto, 19 heridos
+
+
+https://en.wikipedia.org/wiki/2015_East_Village_gas_explosion
+
+
+otros eventos a considerar:
+
+https://en.wikipedia.org/wiki/Lady_Gaga_Live_at_Roseland_Ballroom (7 shows) 
+Start date	March 28, 2014
+End date	April 7, 2014
+
+
+https://en.wikipedia.org/wiki/Adele_Live_in_New_York_City
+
+December 14, 2015.
+
+
+. 2014 New York City Marathon
+
+November 2, 2014. sunday
+
+. 2014 New York City Marathon
+
+November 1, 2015 Sunday  9 a.m. to 2:00 p.m. 
+
+https://en.wikipedia.org/wiki/2015_New_York_City_Marathon
+
+The 26.2-mile (42.2 km) course covers all five boroughs of New York City. 
+It begins on Staten Island, in Fort Wadsworth, near the approach to the Verrazano-Narrows Bridge.[4] The bridge, which normally carries only vehicular traffic, is closed for the event. Runners use both sides of the upper level of the bridge and the westbound side of the lower level. In the opening minutes of the race, the bridge is filled with runners, creating a dramatic spectacle that is closely associated with the event.
+
