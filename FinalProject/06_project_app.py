@@ -7,7 +7,8 @@ import dash_table
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import plotly.tools as tls
+import plotly.graph_objs
 
 from urllib.request import urlopen
 import plotly.graph_objects as go
@@ -28,6 +29,9 @@ from wordcloud import WordCloud
 # #######################################################
 
 
+integrantes = ["Santiago Cuervo", "Ricardo Granados", "Héctor Jaramillo", "Carlos Navarrete", "Diego Rey", "Nicolás Arce"]
+fuentesDeDatos = ["PQRS Superintendencia Nacional de Salud", "Ministerio de Hacienda", "Censo poblacional DANE 2015" ]
+
 municipios_df = pd.read_csv('municipios_consolidados.csv' ) 
 pqrs_df = pd.read_csv('pqrs_consolidados_30-nov.csv' ) 
 pqrs_df['ANIO'] = pqrs_df['ANIO'].astype(str)
@@ -46,7 +50,8 @@ for i in geod['features']:
 
 mung_df = gpd.read_file('mun.geojson')
 
-m_geo_df = mung_df[['ID_ESPACIA', 'AREA_OFICI', 'ENTIDAD_TE', 'geometry']]
+m_geo_df = mung_df[['COD_DEPTO', 'ID_ESPACIA', 'AREA_OFICI', 'ENTIDAD_TE', 'geometry']]
+m_geo_df['COD_DEPTO'] = m_geo_df['COD_DEPTO'].astype(int)
 m_geo_df['LATITUD'] = m_geo_df['geometry'].y
 m_geo_df['LONGITUD'] = m_geo_df['geometry'].x
 
@@ -117,7 +122,7 @@ navbar = dbc.NavbarSimple(
     #color="dark",
     color="primary",
     dark=True,
-    sticky="top",
+    #sticky="top",
 )
 """
 
@@ -373,24 +378,47 @@ Explore alguna de las variables disponibles acerca de los PQRS que se han presen
                                     ]
                                 ),
                                 dbc.Modal(
+                                    [
+                                        dbc.ModalHeader("Parámetros"),
+                                        dbc.ModalBody(
+                                            dbc.Tabs(
+                                                [
+                                                    dbc.Tab(tab1_content, label="Geográficos"),
+                                                    dbc.Tab(tab2_content, label="Filtros")
+                                                ]
+                                            )
+                                        ),
+                                        dbc.ModalFooter(
+                                            dbc.Button(
+                                                "Close", id="close-centered", className="ml-auto"
+                                            )
+                                        ),
+                                    ],
+                                    id="modal-centered",
+                                    centered=True,
+                                ),
+                                dbc.Modal(
+                                    [
+                                        dbc.ModalHeader("Info"),
+                                        dbc.ModalBody(
+                                            children=
                                             [
-                                                dbc.ModalHeader("Parámetros"),
-                                                dbc.ModalBody(
-                                                    dbc.Tabs(
-                                                        [
-                                                            dbc.Tab(tab1_content, label="Geográficos"),
-                                                            dbc.Tab(tab2_content, label="Filtros")
-                                                        ]
-                                                    )
-                                                ),
-                                                dbc.ModalFooter(
-                                                    dbc.Button(
-                                                        "Close", id="close-centered", className="ml-auto"
-                                                    )
-                                                ),
-                                            ],
-                                            id="modal-centered",
-                                            centered=True,
+                                                html.H3("Integrantes:"),
+                                                html.Ul([html.Li(x) for x in integrantes]),
+                                                html.H3("Agradecimientos a:"),
+                                                html.Img(src = app.get_asset_url("img/logosMinTIC.png"), height="120px"),
+                                                html.H3("Fuentes de datos consultadas"),
+                                                html.Ul([html.Li(x) for x in fuentesDeDatos]),
+                                            ]
+                                        ),
+                                        dbc.ModalFooter(
+                                            dbc.Button(
+                                                "Close", id="close-info", className="ml-auto"
+                                            )
+                                        ),
+                                    ],
+                                    id="modal-info",
+                                    centered=True,
                                 )
                             ]
                         ),
@@ -524,7 +552,7 @@ Escoge otro departamento para comparar"""
                     },
                     id="usuario"
                 ),
-                dcc.Graph(id="wordcloudfig"),
+                html.Img(id="wordcloud-usuario-img", width="300px")
             ]
         ),
     ],
@@ -705,9 +733,12 @@ html.Div(children=[
 
 app.layout = html.Div([navbar, body])
 
-#
-# Abre la ventana de parámetros
-# 
+
+
+# #######################################################
+#           CALL BACK  - MODAL WINDOWS
+# #######################################################
+
  
 @app.callback(
     Output("modal-centered", "is_open"),
@@ -719,6 +750,17 @@ def toggle_modal(n1, n2, is_open):
         return not is_open
     return is_open
 
+
+ 
+@app.callback(
+    Output("modal-info", "is_open"),
+    [Input("open-info", "n_clicks"), Input("close-info", "n_clicks")],
+    [State("modal-info", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
 
 
 
@@ -884,8 +926,8 @@ def consolidadoAnio(campo, datos_df, porcentajes=True, cambios=True):
 
 @app.callback(
     [
-        dash.dependencies.Output("titulo_top_10", "children")#,
-        #dash.dependencies.Output("wordcloudfig", "figure")
+        dash.dependencies.Output("titulo_top_10", "children"),
+        dash.dependencies.Output("wordcloud-usuario-img", "src")
     ],
     [
         dash.dependencies.Input(component_id='departamento-dropdown', component_property='value'),
@@ -916,10 +958,15 @@ def update_titulo(departamentoSeleccionado, municipioSeleccionado, mejoresPeores
     wordcloud = WordCloud(max_font_size=100, max_words=100, background_color="white",\
                             scale = 10,width=800, height=400).generate(word_cloud_text)
                             
-    fig = plt.figure(figsize = (15, 30))
+    fig = plt.figure(figsize = (20, 15))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
-    return [html.I(className=icono), titulo] #, fig
+    #plt.savefig("assets/img/wordcloud_usuario.png")
+    urlWC = app.get_asset_url("img/wordcloud_usuario.png")
+    
+    print(type(fig))
+    #dcc.Graph(id=‘graphs’, figure=fig_url)
+    return [[html.I(className=icono), titulo], urlWC]
 
 
 # #######################################################
@@ -942,21 +989,27 @@ def update_mapa_principal(departamentoSeleccionado, municipioSeleccionado):
     if departamentoSeleccionado != None:
         departamentosSeleccionados_df = departamentos_df[departamentos_df['DEPARTAMENTO'] == departamentoSeleccionado]
         codDeptoSeleccionado = departamentosSeleccionados_df['COD_DEPTO'].iloc[0]
-        
+        codDeptoSeleccionado = codDeptoSeleccionado.astype(int)
         listaMunicipios = municipios_df2[municipios_df2['COD_DEPTO'] == codDeptoSeleccionado]
         listaMunicipios = listaMunicipios['COD_MUNICIPIO'].values.reshape(-1)
         print(listaMunicipios)
         print(listaMunicipios.shape)
-        muncipiosEnDepto_df2 = m_geo_df[m_geo_df['ID_ESPACIA'].isin(listaMunicipios)]
+        #muncipiosEnDepto_df2 = m_geo_df[m_geo_df['ID_ESPACIA'].isin(listaMunicipios)]
         print("**** MUNICIPIOS*")
-        print(muncipiosEnDepto_df2)
-        muncipiosEnDepto_df = m_geo_df
+        print(type(codDeptoSeleccionado))
+        
+        print(type(m_geo_df['COD_DEPTO']))
+        print("#####")
+        muncipiosEnDepto_df = m_geo_df[m_geo_df['COD_DEPTO'] == codDeptoSeleccionado]
+        
+        print(muncipiosEnDepto_df)
         munpoint = go.Scattermapbox(
             lat = muncipiosEnDepto_df['LATITUD'],
             lon = muncipiosEnDepto_df['LONGITUD'],
             mode = 'markers',
             text = muncipiosEnDepto_df['ID_ESPACIA']
-        )            
+        )     
+        capas.append(munpoint)       
         
 
     g = go.Choroplethmapbox(geojson = geod,
