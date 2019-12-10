@@ -58,7 +58,8 @@ m_geo_df['LONGITUD'] = m_geo_df['geometry'].x
 municipios_df2 = pd.read_csv('mun_.csv')
 departamentos_df = municipios_df2.groupby(['COD_DEPTO','DEPARTAMENTO']).sum().reset_index()
 
-
+deptos_geo_df = gpd.read_file('geo_deptos.geojson')
+deptos_geo_df['DPTO'] = deptos_geo_df['DPTO'].astype(int)
 
 
 
@@ -986,16 +987,20 @@ def update_mapa_principal(departamentoSeleccionado, municipioSeleccionado):
     capas = []
     departamentosSeleccionados_df = departamentos_df
 
+    centroide = {"lat": 4, "lon": -72}
+    zoom = 3
+
     if departamentoSeleccionado != None:
         departamentosSeleccionados_df = departamentos_df[departamentos_df['DEPARTAMENTO'] == departamentoSeleccionado]
         codDeptoSeleccionado = departamentosSeleccionados_df['COD_DEPTO'].iloc[0]
         codDeptoSeleccionado = codDeptoSeleccionado.astype(int)
-        listaMunicipios = municipios_df2[municipios_df2['COD_DEPTO'] == codDeptoSeleccionado]
-        listaMunicipios = listaMunicipios['COD_MUNICIPIO'].values.reshape(-1)
-        print(listaMunicipios)
-        print(listaMunicipios.shape)
-        #muncipiosEnDepto_df2 = m_geo_df[m_geo_df['ID_ESPACIA'].isin(listaMunicipios)]
-        print("**** MUNICIPIOS*")
+        
+        lat = (deptos_geo_df[deptos_geo_df['DPTO'] == codDeptoSeleccionado]['centroid']).values[0]['coordinates'][1]
+        lon = (deptos_geo_df[deptos_geo_df['DPTO'] == codDeptoSeleccionado]['centroid']).values[0]['coordinates'][0]
+        
+        centroide = {"lat": lat, "lon": lon}
+        zoom = 9
+        print("**** CENTROIDE  ****")
         print(type(codDeptoSeleccionado))
         
         print(type(m_geo_df['COD_DEPTO']))
@@ -1023,7 +1028,7 @@ def update_mapa_principal(departamentoSeleccionado, municipioSeleccionado):
 
 
     lyt = go.Layout(mapbox_style = "carto-positron",
-                mapbox_zoom = 3, mapbox_center = {"lat": 4, "lon": -72})
+                mapbox_zoom = zoom, mapbox_center = centroide)
     
     
     
