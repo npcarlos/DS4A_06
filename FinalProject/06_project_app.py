@@ -32,8 +32,10 @@ from wordcloud import WordCloud
 integrantes = ["Santiago Cuervo", "Ricardo Granados", "Héctor Jaramillo", "Carlos Navarrete", "Diego Rey", "Nicolás Arce"]
 fuentesDeDatos = ["PQRS Superintendencia Nacional de Salud", "Ministerio de Hacienda", "Censo poblacional DANE 2015" ]
 
-municipios_df = pd.read_csv('municipios_consolidados.csv' ) 
-pqrs_df = pd.read_csv('pqrs_consolidados_30-nov.csv' ) 
+#municipios_df = pd.read_csv('municipios_consolidados.csv' ) 
+pqrs_df = pd.read_csv('pqr_.csv' ) 
+#pqrs_df = pd.read_csv('pqrs_consolidados_30-nov.csv' ) 
+
 pqrs_df['ANIO'] = pqrs_df['ANIO'].astype(str)
 
 
@@ -52,17 +54,43 @@ mung_df = gpd.read_file('mun.geojson')
 
 m_geo_df = mung_df[['COD_DEPTO', 'ID_ESPACIA', 'AREA_OFICI', 'ENTIDAD_TE', 'geometry']]
 m_geo_df['COD_DEPTO'] = m_geo_df['COD_DEPTO'].astype(int)
+m_geo_df['ID_ESPACIA'] = m_geo_df['ID_ESPACIA'].astype(int)
 m_geo_df['LATITUD'] = m_geo_df['geometry'].y
 m_geo_df['LONGITUD'] = m_geo_df['geometry'].x
 
-municipios_df2 = pd.read_csv('mun_.csv')
-departamentos_df = municipios_df2.groupby(['COD_DEPTO','DEPARTAMENTO']).sum().reset_index()
+municipios_df = pd.read_csv('mun_.csv')
+municipios_df['COD_MUNICIPIO'] = municipios_df['COD_MUNICIPIO'].astype(int)
+print(municipios_df.info())
+
+#print(type(municipios_df['COD_MUNICIPIO']))
+departamentos_df = municipios_df.groupby(['COD_DEPTO','DEPARTAMENTO']).sum().reset_index()
 
 deptos_geo_df = gpd.read_file('geo_deptos.geojson')
 deptos_geo_df['DPTO'] = deptos_geo_df['DPTO'].astype(int)
 
+available_indicators = [
+        {'label': 'Alto costo', 'value': 'ALTO_COSTO'},
+        {'label': 'Canal', 'value': 'PQR_CANAL'},
+        {'label': 'Edad', 'value': 'AFEC_EDADR'},
+        {'label': 'Entidad', 'value': 'ENT_NOMBRE'},
+        {'label': 'Estado PQRS', 'value': 'PQR_ESTADO'},
+        {'label': 'Género', 'value': 'AFEC_GENERO'},
+        {'label': 'Grupo étnico', 'value': 'AFEC_GETNICO'},
+        {'label': 'Macromotivo', 'value': 'MACROMOTIVO'},
+        {'label': 'Motivo específico', 'value': 'MOTIVO_ESPECIFICO'},
+        {'label': 'Motivo general', 'value': 'MOTIVO_GENERAL'},
+        {'label': 'Nivel educativo', 'value': 'AFEC_EDUC'},
+        {'label': 'Parentesco', 'value': 'AFEC_PARENTESCO'},
+        {'label': 'Patología', 'value': 'PATOLOGIA_1'},
+        {'label': 'Población Especial', 'value': 'AFEC_POBESPECIAL'},
+        {'label': 'Régimen de afiliación', 'value': 'AFEC_REGAFILIACION'},
+        {'label': 'Riesgo de vida', 'value': 'RIESGO_VIDA'},
+        {'label': 'Tipo de persona', 'value': 'AFEC_TIPOPER'},
+        {'label': 'Tipo de petición', 'value': 'PQR_TIPOPETICION'},
+        {'label': 'Tipo patología', 'value': 'PATOLOGIA_TIPO'},
+        {'label': 'Usuario', 'value': 'AFEC_ID'}
 
-
+    ]
 
 # #######################################################
 #           CREACIÓN DEL APP
@@ -84,8 +112,8 @@ navbar = dbc.NavbarSimple(
         #dbc.NavbarBrand("Salud en Colombia [2017 - 2019 (Oct)]", className="ml-2"),
         dbc.Row(
             [
-                dbc.Col(html.Img(src=app.get_asset_url("img/logo-peq.png"), height="30px")),
-                dbc.Col(dbc.NavbarBrand("Salud en Colombia [2017 - 2019 (Oct)]", className="ml-2")),
+                dbc.Col(html.Img(src = app.get_asset_url("img/logo-peq.png"), height = "30px")),
+                dbc.Col(dbc.NavbarBrand("Salud en Colombia [2017 - 2019 (Oct)]", className = "ml-2")),
             ],
             align="center",
             no_gutters=True,
@@ -104,7 +132,13 @@ navbar = dbc.NavbarSimple(
         dbc.NavItem(dbc.NavLink([
                         html.P("Sugeridos"),
                         html.I(className='fa fa-chart'),
-                    ], href="#", style={'text-align' : "center"})),
+                    ], href="#", style={'text-align' : "center"}, id='linkSugeridos')),
+        dbc.NavItem(dbc.Button(
+            [
+                html.I(className='fa fa-check'),
+            ],
+            id="open-sugerencias"
+        )),
         dbc.NavItem(dbc.Button(
             [
                 html.I(className='fa fa-gear'),
@@ -125,63 +159,6 @@ navbar = dbc.NavbarSimple(
     dark=True,
     #sticky="top",
 )
-"""
-
-dbc.DropdownMenu(
-            nav=True,
-            in_navbar=True,
-            label="Menu",
-            children=[
-                dbc.DropdownMenuItem("Entry 1"),
-                dbc.DropdownMenuItem(
-                    [
-                        html.I(className='fa fa-gear'),
-                        html.P("Informes sugeridos")
-                    ]
-                ),
-                dbc.DropdownMenuItem(divider=True),
-                dbc.DropdownMenuItem(
-                    [
-                        html.I(className='fa fa-info-circle'),
-                        html.P("Info")
-                    ]
-                ),
-            ],
-        ),
-
-navbar = dbc.NavbarSimple(
-    children=[
-        dbc.Button(
-            [
-                "Parámetros ",
-                html.I(className='fa fa-gear'),
-            ],
-            id="open-centered"
-        ),
-        dbc.NavItem(dbc.NavLink("Link", href="#")),
-        dbc.DropdownMenu(
-            nav=True,
-            in_navbar=True,
-            label="Menu",
-            children=[
-                dbc.DropdownMenuItem("Entry 1"),
-                dbc.DropdownMenuItem("Entry 2"),
-                dbc.DropdownMenuItem(divider=True),
-                dbc.DropdownMenuItem("Entry 3"),
-            ],
-        ),
-    ],
-    style={
-        'background': '#108de4',
-        'color' : 'white'
-    },
-    brand="Salud en Colombia [2017 - 2019 (Oct)]",
-    brand_href="#",
-    sticky="top",
-)
-"""
-
-
 
 
 # #######################################################
@@ -211,7 +188,7 @@ tab1_content = dbc.Card(
             dcc.Dropdown(
                 id='departamento-dropdown',
                 options=[
-                    {'label': i, 'value': i} for i in municipios_df['DEPARTAMENTO'].unique()
+                    {'label': row[0], 'value': row[1]} for row in departamentos_df[['DEPARTAMENTO', 'COD_DEPTO']].values
                 ],
                 placeholder="Seleccione un departamento",
             ),
@@ -275,6 +252,82 @@ tab2_content = dbc.Card(
 )
 
 
+#
+# The goal is to change the parameters value according to the selected suggested analysis
+
+sugerencias = [
+        "Morbilidad per cápita VS. PIB per cápita",
+        "Morbilidad per cápita VS. Cobertura",
+        "Morbilidad per cápita VS. Causa",
+        "Familia Causa VS. PIB per cápita ",
+        "Familia Causa VS. Edad",
+        
+    ]
+
+tab3_content = dbc.Card(
+    dbc.CardBody(
+        [   
+            html.H6("Sugerencias:"),
+            html.P("A continuación presentamos algunos análisis sugeridos "),
+            dcc.RadioItems(
+                options=[],
+                style={
+                    'display':'block'
+                }
+            )
+        ]
+    ),
+    #className="mt-3",
+)
+tab4_content = dbc.Card(
+    dbc.CardBody(
+        [   
+            html.H6("Sugerencias:"),
+            html.P("A continuación presentamos algunos análisis sugeridos "),
+            dcc.RadioItems(
+                options=[
+                    {'label': row, 'value': row} for row in sugerencias
+                ],
+                style={
+                    'display':'block'
+                }
+            )
+        ]
+    ),
+    #className="mt-3",
+)
+tab5_content = dbc.Card(
+    dbc.CardBody(
+        [   
+            html.H6("Sugerencias:"),
+            html.P("A continuación presentamos algunos análisis sugeridos "),
+            dcc.RadioItems(
+                options=[],
+                style={
+                    'display':'block'
+                }
+            )
+        ]
+    ),
+    #className="mt-3",
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -305,8 +358,146 @@ body = dbc.Container(
                 'padding-bottom': '50px'
             }
         ),
-        
+        dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [html.H6("Grupo de datos principal: ")]
+                                ),
+                                dbc.Col(
+                                    [html.H6("Año: ")]
+                                )
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [
+                                        dcc.Dropdown(
+                                            id='familia-radio',
+                                            options=[{'label': i, 'value': i} for i in ['PQRS SuperSalud', 'Morbilidad', 'Socioeconómico']],
+                                            value='PQRS SuperSalud'
+                                        )
+                                    ]
+                                ),
+                                dbc.Col(
+                                    [
+                                        dcc.Dropdown(
+                                            id='anio-dropdown',
+                                            options=[{'label': i, 'value': i} for i in ['2017', '2018', '2019']],
+                                            value='2019'
+                                        )
+                                    ]
+                                )
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [
+                                        html.H6("Variable principal: "),
+                                        dcc.Dropdown(
+                                            id='variable-principal',
+                                            options=available_indicators,
+                                            value=available_indicators[0]['value']
+                                        )
+                                    ]
+                                ),
+                                dbc.Col(
+                                    [
+                                        html.H6("Variable secundaria: "),
+                                        dcc.Dropdown(
+                                            id='variable-secundaria',
+                                            options=available_indicators,
+                                            value=available_indicators[1]['value']
+                                        )
+                                    ]
+                                )
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [
+                                        dcc.Graph(id="heatmap-principal"),
+                                    ],
+                                    md = 12
+                                ),
+                                html.H1(id="texto")
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [html.H6("Grupo de datos principal: ")]
+                                ),
+                                dbc.Col(
+                                    [html.H6("Año: ")]
+                                )
+                            ]
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    [
+                                        dbc.Row(
+                                            [html.H6("Grupo de datos principal: ")]
+                                        ),
+                                        dbc.Row(
+                                            [html.H6("Año: ")]
+                                        ),
+                                        dbc.Row(
+                                            [dcc.Graph(id="graph-top")]
+                                        )
+                                    ],
+                                    md = 6
+                                ),
+                                dbc.Col(
+                                    [
+                                        dbc.Row(
+                                            [html.H6("Grupo de datos principal: ")]
+                                        ),
+                                        dbc.Row(
+                                            [html.H6("Año: ")]
+                                        ),
+                                        dbc.Row(
+                                            [dcc.Graph(id="graph-bottom")]
+                                        )
+                                    ],
+                                    md = 6
+                                )
+                            ]
+                        ), 
+                    ],
+                    md = 8,
+                ),
+                dbc.Col(
+                    [
+                        
+                        # #######################################################
+                        #           COLUMNA DERECHA
+                        # #######################################################
 
+                        html.H2(
+                            children=
+                            [
+                                html.I(className='fa fa-map-marker'),
+                                " ¿Dónde?"
+                            ]
+                        ),
+                        dcc.Graph(id="mapa-principal", clear_on_unhover=True),
+                    ],
+                    md = 4
+                )
+            ],
+            #style = {
+            #    'border-style': 'solid',
+            #    'border-width': '1px'
+            #}
+        ),
 
         # #######################################################
         #           INTRODUCCIÓN
@@ -352,31 +543,31 @@ Explore alguna de las variables disponibles acerca de los PQRS que se han presen
                                         dcc.Dropdown(
                                             id='variable-tabla-dropdown',
                                             placeholder="Variables de análisis",
-                                            options=[
-                                                {'label': 'Alto costo', 'value': 'ALTO_COSTO'},
-                                                {'label': 'Canal', 'value': 'PQR_CANAL'},
-                                                {'label': 'Edad', 'value': 'AFEC_EDADR'},
-                                                {'label': 'Entidad', 'value': 'ENT_NOMBRE'},
-                                                {'label': 'Estado PQRS', 'value': 'PQR_ESTADO'},
-                                                {'label': 'Género', 'value': 'AFEC_GENERO'},
-                                                {'label': 'Grupo étnico', 'value': 'AFEC_GETNICO'},
-                                                {'label': 'Macromotivo', 'value': 'MACROMOTIVO'},
-                                                {'label': 'Motivo específico', 'value': 'MOTIVO_ESPECIFICO'},
-                                                {'label': 'Motivo general', 'value': 'MOTIVO_GENERAL'},
-                                                {'label': 'Nivel educativo', 'value': 'AFEC_EDUC'},
-                                                {'label': 'Parentesco', 'value': 'AFEC_PARENTESCO'},
-                                                {'label': 'Patología', 'value': 'PATOLOGIA_1'},
-                                                {'label': 'Población Especial', 'value': 'AFEC_POBESPECIAL'},
-                                                {'label': 'Régimen de afiliación', 'value': 'AFEC_REGAFILIACION'},
-                                                {'label': 'Riesgo de vida', 'value': 'RIESGO_VIDA'},
-                                                {'label': 'Tipo de persona', 'value': 'AFEC_TIPOPER'},
-                                                {'label': 'Tipo de petición', 'value': 'PQR_TIPOPETICION'},
-                                                {'label': 'Tipo patología', 'value': 'PATOLOGIA_TIPO'},
-                                                {'label': 'Usuario', 'value': 'AFEC_ID'}
-
-                                            ]
+                                            options=available_indicators
                                         )
                                     ]
+                                ),
+                                
+                                dbc.Modal(
+                                    [
+                                        dbc.ModalHeader("Consultas sugeridas"),
+                                        dbc.ModalBody(
+                                            dbc.Tabs(
+                                                [
+                                                    dbc.Tab(tab3_content, label="PRQS SuperSalud"),
+                                                    dbc.Tab(tab4_content, label="Morbilidad"),
+                                                    dbc.Tab(tab5_content, label="Socioeconómico")
+                                                ]
+                                            )
+                                        ),
+                                        dbc.ModalFooter(
+                                            dbc.Button(
+                                                "Close", id="close-sugerencias", className="ml-auto"
+                                            )
+                                        ),
+                                    ],
+                                    id="modal-sugerencias",
+                                    centered=True,
                                 ),
                                 dbc.Modal(
                                     [
@@ -429,20 +620,12 @@ Explore alguna de las variables disponibles acerca de los PQRS que se han presen
                             columns=[
                                 
                             ],
-                            #style_cell={'width': '50px'},
                             style_table={
                                 'maxHeight': '450px',
                                 'overflowY': 'scroll',
                                 'overflowX': 'scroll'
                             }
                         ),
-                        #html.H3(
-                        #    children=
-                        #    [
-                        #        html.I(className='fa chart-bar'),
-                        #        " Gráfico"
-                        #    ]
-                        #),
                         dcc.Graph(
                             figure={"data": [{"x": [1, 2, 3], "y": [1, 4, 9]}]},
                             id="grafico-principal"
@@ -452,19 +635,7 @@ Explore alguna de las variables disponibles acerca de los PQRS que se han presen
                 ),
                 dbc.Col(
                     [
-
-                        # #######################################################
-                        #           COLUMNA DERECHA
-                        # #######################################################
-
-                        html.H2(
-                            children=
-                            [
-                                html.I(className='fa fa-map-marker'),
-                                " ¿Dónde?"
-                            ]
-                        ),
-                        dcc.Graph(id="mapa-principal"),
+                        html.H1("MAPA")
                         
                     ]
                 ),
@@ -553,180 +724,13 @@ Escoge otro departamento para comparar"""
                     },
                     id="usuario"
                 ),
-                html.Img(id="wordcloud-usuario-img", width="300px")
+                html.Img(id="wordcloud-usuario-img", width="300px"),
+                html.H1(id="click_txt")
             ]
-        ),
+        )
     ],
     className="mt-4",
 )
-"""
-html.Div(children=[
-    html.Div(
-            children=[
-                html.H1(children="Salud en Colombia", className='h1-title'),
-                dbc.Button("Open", id="open-centered"),
-                dbc.Modal(
-                    [
-                        dbc.ModalHeader("Parámetros"),
-                        dbc.ModalBody(
-                            dbc.Tabs(
-                                [
-                                    dbc.Tab(tab1_content, label="Geográficos"),
-                                    dbc.Tab(tab2_content, label="Filtros")
-                                ]
-                            )
-                        ),
-                        dbc.ModalFooter(
-                            dbc.Button(
-                                "Close", id="close-centered", className="ml-auto"
-                            )
-                        ),
-                    ],
-                    id="modal-centered",
-                    centered=True,
-                )
-            ],
-            className='study-browser-banner row'
-    ),
-    html.Div(
-        className="row app-body",
-        children=[
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
-                            html.Div(
-                                className="padding",
-                                children=[
-                                    html.Div(
-                                        #className="six columns",
-                                        children=[
-                                            html.H3("Top 10"), 
-                                            html.H6("Variable:"),
-                                            dcc.Dropdown(
-                                                id='variable-tabla-dropdown',
-                                                options=[
-                                                    {'label': 'Alto costo', 'value': 'ALTO_COSTO'},
-                                                    {'label': 'Canal', 'value': 'PQR_CANAL'},
-                                                    {'label': 'Edad', 'value': 'AFEC_EDADR'},
-                                                    {'label': 'Entidad', 'value': 'ENT_NOMBRE'},
-                                                    {'label': 'Estado PQRS', 'value': 'PQR_ESTADO'},
-                                                    {'label': 'Género', 'value': 'AFEC_GENERO'},
-                                                    {'label': 'Grupo étnico', 'value': 'AFEC_GETNICO'},
-                                                    {'label': 'Macromotivo', 'value': 'MACROMOTIVO'},
-                                                    {'label': 'Motivo específico', 'value': 'MOTIVO_ESPECIFICO'},
-                                                    {'label': 'Motivo general', 'value': 'MOTIVO_GENERAL'},
-                                                    {'label': 'Nivel educativo', 'value': 'AFEC_EDUC'},
-                                                    {'label': 'Parentesco', 'value': 'AFEC_PARENTESCO'},
-                                                    {'label': 'Patología', 'value': 'PATOLOGIA_1'},
-                                                    {'label': 'Población Especial', 'value': 'AFEC_POBESPECIAL'},
-                                                    {'label': 'Régimen de afiliación', 'value': 'AFEC_REGAFILIACION'},
-                                                    {'label': 'Riesgo de vida', 'value': 'RIESGO_VIDA'},
-                                                    {'label': 'Tipo de persona', 'value': 'AFEC_TIPOPER'},
-                                                    {'label': 'Tipo de petición', 'value': 'PQR_TIPOPETICION'},
-                                                    {'label': 'Tipo patología', 'value': 'PATOLOGIA_TIPO'},
-                                                    {'label': 'Usuario', 'value': 'AFEC_ID'}
-
-                                                ],
-                                            ),    
-                                            dash_table.DataTable(
-                                                id='top10-table',
-                                                columns=[
-                                                    
-                                                ],
-                                                #style_cell={'width': '50px'},
-                                                style_table={
-                                                    'maxHeight': '450px',
-                                                    'overflowY': 'scroll',
-                                                    'overflowX': 'scroll'
-                                                }
-                                            )
-                                        ]
-                                    ),
-                                    html.Div(
-                                        #className="three columns",
-                                        children = [
-                                            
-                                            html.H3("Top 10")
-                                        ]
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                    
-                ],
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
-                            # Comparación 
-                            html.Div(
-                                className="padding",
-                                children=[
-                                    html.Div(
-                                        #className="six columns",
-                                        children=[
-                                            html.Div(
-                                                #className="padding row",
-                                                children=[
-                                                html.Div(
-                                                    #className="three columns",
-                                                    children=[
-                                                    html.H3("Comparación por municipio"),
-                                                    html.H6("Departamento:"),
-                                                    dcc.Dropdown(
-                                                        id='comparacion-departamento-dropdown',
-                                                        options=[
-                                                            {'label': i, 'value': i} for i in municipios_df['DEPARTAMENTO'].unique()
-                                                        ],
-                                                    ),
-                                                    html.H6("Municipio:"),
-                                                    dcc.Dropdown(
-                                                        id='comparacion-municipio-dropdown',
-                                                        options=[
-                                                        ],
-                                                    ),
-                                                    html.H6("Institución:"),
-                                                    dcc.Dropdown(
-                                                        id='comparacion-institucion-dropdown',
-                                                        options=[
-                                                        ],
-                                                    ),
-                                                    html.P("Gráfica de municipio 1")
-                                                ])
-                                            ]),
-                                            html.Div(
-                                                #className="padding row",
-                                                children=[
-                                                html.Div(
-                                                    #className="three columns",
-                                                    children=[
-                                                    html.H3("Comparación por municipio"),
-                                                    html.P("Gráfica de municipio 2")
-                                                ])
-                                            ])
-                                            
-                                        ]
-                                    ),
-                                    html.Div(
-                                        className="six columns",
-                                        children=[
-                                            html.H3("Comparación por variables"),
-                                            html.P("Gráfica de municipio 1")
-                                        ]
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                ]
-            )
-        ]
-    )        
-])
-"""
 
 # #######################################################
 #          APP LAYOUT
@@ -764,6 +768,18 @@ def toggle_modal(n1, n2, is_open):
     return is_open
 
 
+ 
+@app.callback(
+    Output("modal-sugerencias", "is_open"),
+    [Input("open-sugerencias", "n_clicks"), Input("close-sugerencias", "n_clicks")],
+    [State("modal-sugerencias", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
 
 # #######################################################
 #           CALL BACK  - DROPDOWN  DE PARÁMETROS
@@ -775,91 +791,62 @@ def toggle_modal(n1, n2, is_open):
     [dash.dependencies.Input(component_id='departamento-dropdown', component_property='value')]
 )
 def update_municipio_dropdown(depto):
-    #municipios = []
+    municipios = []
     
-    #if depto != None:
-    municipios = municipios_df[municipios_df['DEPARTAMENTO']==depto]['MUNICIPIO'].unique()
+    if depto != None:
+        municipios = municipios_df[municipios_df['COD_DEPTO'] == depto][['MUNICIPIO', 'COD_MUNICIPIO']].values
     
-    municipios = [{'label': i, 'value': i} for i in municipios]
+    municipios = [{'label': row[0], 'value': row[1]} for row in municipios]
     return municipios
-
-
-@app.callback(
-    dash.dependencies.Output(component_id='institucion-dropdown', component_property='options'),
-    [dash.dependencies.Input(component_id='departamento-dropdown', component_property='value'),
-    dash.dependencies.Input(component_id='municipio-dropdown', component_property='value')]
-)
-def update_institucion_dropdown(depto, municipio):
-    entidades = pqrs_df[(pqrs_df['AFEC_DPTO'] == depto) & (pqrs_df['AFEC_MPIO'] == municipio) &  (pqrs_df['ENT_NOMBRE'].notna())]['ENT_NOMBRE'].unique()
-    
-    print(entidades)
-    entidades = [{'label': i, 'value': i} for i in entidades]
-    return entidades
-
-
-
-
-@app.callback(
-    dash.dependencies.Output(component_id='comparacion-municipio-dropdown', component_property='options'),
-    [dash.dependencies.Input(component_id='comparacion-departamento-dropdown', component_property='value')]
-)
-def update_municipio_dropdown(depto):
-    #municipios = []
-    
-    #if depto != None:
-    municipios = municipios_df[municipios_df['DEPARTAMENTO']==depto]['MUNICIPIO'].unique()
-    
-    municipios = [{'label': i, 'value': i} for i in municipios]
-    return municipios
-
-
-@app.callback(
-    dash.dependencies.Output(component_id='comparacion-institucion-dropdown', component_property='options'),
-    [dash.dependencies.Input(component_id='comparacion-departamento-dropdown', component_property='value'),
-    dash.dependencies.Input(component_id='comparacion-municipio-dropdown', component_property='value')]
-)
-def update_institucion_dropdown(depto, municipio):
-    entidades = pqrs_df[(pqrs_df['AFEC_DPTO'] == depto) & (pqrs_df['AFEC_MPIO'] == municipio) &  (pqrs_df['ENT_NOMBRE'].notna())]['ENT_NOMBRE'].unique()
-    
-    print(entidades)
-    entidades = [{'label': i, 'value': i} for i in entidades]
-    return entidades
 
 
 # #######################################################
 #           CALL BACK  - TABLA PRINCIPAL
 # #######################################################
+def filtrarPQRS(depto, municipio, tipoPersona):
+    
+    filtroTotal = np.ones((pqrs_df.shape[0], 1), dtype = bool).reshape(-1)
+    
+    if depto != None:
+        filtroTotal = filtroTotal & (pqrs_df['COD_DEPTO'] == depto)
+
+    if municipio != None:
+        filtroTotal = filtroTotal & (pqrs_df['COD_MUNICIPIO'] == municipio)
+    
+
+    if tipoPersona != '1':
+        filtroTotal = filtroTotal & (pqrs_df['AFEC_TIPOPER'] == tipoPersona)
+
+
+    pqrsFiltrado = pqrs_df[filtroTotal]
+
+    return pqrsFiltrado
 
 
 @app.callback(
-    [
-        dash.dependencies.Output(component_id='top10-table', component_property='data'),
-        dash.dependencies.Output(component_id='top10-table', component_property='columns'),
-        #dash.dependencies.Output("grafico-principal", "figure")
-    ],   
+    
+        #dash.dependencies.Output(component_id='top10-table', component_property='data'),
+        #dash.dependencies.Output(component_id='top10-table', component_property='columns'),
+        dash.dependencies.Output("heatmap-principal", "figure")
+    ,   
     [
         dash.dependencies.Input(component_id='variable-tabla-dropdown', component_property='value'),
         dash.dependencies.Input(component_id='departamento-dropdown', component_property='value'),
         dash.dependencies.Input(component_id='municipio-dropdown', component_property='value'),
         dash.dependencies.Input(component_id='filtro-cantidades-dropdown', component_property='value'),
-        dash.dependencies.Input(component_id='tipo-persona-radiobtn', component_property='value')    ,
-        dash.dependencies.Input(component_id='mejores-peores-radiobtn', component_property='value')        
+        dash.dependencies.Input(component_id='tipo-persona-radiobtn', component_property='value'),
+        dash.dependencies.Input(component_id='mejores-peores-radiobtn', component_property='value'),
+        dash.dependencies.Input(component_id='variable-principal', component_property='value'),
+        dash.dependencies.Input(component_id='variable-secundaria', component_property='value'),
+        dash.dependencies.Input(component_id='anio-dropdown', component_property='value'),
+        dash.dependencies.Input(component_id='mapa-principal', component_property='hoverData')
     ]
 )
-def update_top10_table(variableInteres, depto, municipio, cantidades, tipoPersona, mejoresPeores):
+def update_top10_table(variableInteres, depto, municipio, cantidades, tipoPersona, mejoresPeores, variablePrincipal, variableSecundaria, anio, hoverData):
     
-    filtroTotal = np.ones((pqrs_df.shape[0], 1), dtype = bool).reshape(-1)
-    
-    if depto != None:
-        filtroTotal = filtroTotal & (pqrs_df['AFEC_DPTO'] == depto)
+    pqrsFiltrado = filtrarPQRS(depto, municipio, tipoPersona)
 
-    if municipio != None:
-        filtroTotal = filtroTotal & (pqrs_df['AFEC_MPIO'] == municipio)
-    
-    if variableInteres == None:
-        variableInteres = 'RIESGO_VIDA'
-
-    columnas = [variableInteres]
+    columnas = [ variableInteres]
 
 
     if ((cantidades == None) or ('abs' in cantidades) ):
@@ -871,37 +858,126 @@ def update_top10_table(variableInteres, depto, municipio, cantidades, tipoPerson
     if ((cantidades == None) or ('variaciones' in cantidades) ):
         columnas += ['2017_2018_PORC', '2018_2019_PORC']
     
-    if tipoPersona != '1':
-        filtroTotal = filtroTotal & (pqrs_df['AFEC_TIPOPER'] == tipoPersona)
     
-    pqrsFiltrado = pqrs_df[filtroTotal]
+    if variableInteres == None:
+        variableInteres = 'RIESGO_VIDA'
+    
 
     # Tabla
-    dff = consolidadoAnio(variableInteres, pqrsFiltrado)
+    #dff = consolidadoAnio(variableInteres, pqrsFiltrado)
+
+    if anio == None:
+        anio = '2019'
+    pqrsFiltrado = pqrsFiltrado[pqrsFiltrado['ANIO'] == anio]
     
+    """
     if mejoresPeores == "bottom":
         dff = dff.tail(10)
     else:
         dff = dff.head(10)
+    """
+    #dff_tabla = dff[columnas]
+    #dff_tabla = dff
 
-    dff_tabla = dff[columnas]
+    ## HEATMAP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #print(hoverData)
+    print("COMPARANDO HEAT " + variablePrincipal + " vs. " +variableSecundaria + " en " +str(anio))
+    deptoHover = None
+    municipioHover = None
+    comparacionNombre = ""
+    comparacion = None
+    if hoverData != None:
+        if 'location' in hoverData['points'][0]:
+            deptoHover = hoverData['points'][0]['location']
+            print("Comparando depto con " + str(deptoHover))
+            comparacionNombre = municipios_df[municipios_df['COD_DEPTO'] == deptoHover]['DEPARTAMENTO'].values[0]
 
-    # Gráfico
-    #g_df = consolidadoAnio('AFEC_PARENTESCO', datos_df=pqrs_df[(pqrs_df['AFEC_PARENTESCO'] != 'NOMBRE PROPIO')]).sort_values(by=2019,ascending=False).head(15)
-    #g_df = dff
-    #g_df.columns = ['AFEC_PARENTESCO',	'2017_total',	'2018_total',	'2019_total',	'2017',	'2018',	'2019',	'2018_2017_PORC',	'2019_2018_PORC']
-    g_df = pd.melt(dff, id_vars=[variableInteres], value_vars=['2017','2018','2019'], value_name="Porcentaje_anual")
-    g_df.columns = [variableInteres, "Año", "valor"]
+        else:
+            municipioHover = hoverData['points'][0]['text']
+            municipioHover = int(municipioHover)
+            muni_reducido = municipios_df[['MUNICIPIO', 'COD_MUNICIPIO', 'COD_DEPTO', 'DEPARTAMENTO']]
+            print("Comparando muni con " + str(municipioHover))
+            print(type(municipioHover))
+            print(muni_reducido.shape)
+            print(muni_reducido[muni_reducido['COD_DEPTO'] == depto])
+            print("=> " +muni_reducido[muni_reducido['COD_MUNICIPIO'] == municipioHover])
+            print("==> " +muni_reducido[muni_reducido['COD_MUNICIPIO'] == municipioHover]['MUNICIPIO'])
+            
+            #print("===> " +muni_reducido[muni_reducido['COD_MUNICIPIO'] == municipioHover]['MUNICIPIO'].values)
+            #comparacionNombre = municipios_df[municipios_df['COD_MUNICIPIO'] == municipioHover]['MUNICIPIO'].values[0]
+            comparacionNombre =" MUNICIOPIO"
+            
+        pqrsFiltrado = filtrarPQRS(deptoHover, municipioHover, tipoPersona)
+        comparacion = [depto, municipio, tipoPersona]
+        titulo = "Comparación con " + str( comparacionNombre ) + " => " +variablePrincipal + " vs. " +variableSecundaria + " en " + str(anio)
+    else:
+        pqrsFiltrado = filtrarPQRS(depto, municipio, tipoPersona)
+        titulo = variablePrincipal + " vs. " +variableSecundaria + " en " +anio
+    
+    f = HeatMap(pqrsFiltrado, variablePrincipal, variableSecundaria, titulo, comparacion)
 
-    f, ax = plt.subplots(figsize=(10, 10))
-    ax = sns.barplot(x="valor", y=variableInteres, data=g_df, hue="Año")
-
-    return dff_tabla.to_dict('records'), [{'id': p, 'name': p} for p in dff_tabla.columns]#, ax
+    return f
 
 
+
+def HeatMap(df, var1, var2, titulo="", columnas=None):
+    s = pd.crosstab(df[var1],df[var2], margins=True).copy()
+    
+    
+
+    if columnas == None:
+        s = s.sort_values(by="All", ascending=False)
+        s = s.sort_values(by="All", ascending=False, axis=1)
+        s = s.drop("All")
+        s = s.drop("All", axis = 1)
+        s = s.iloc[:10, :10]
+    else:
+        depto = columnas[0]
+        municipio = columnas[1]
+        tipoPersona = columnas[2]
+
+        original = filtrarPQRS(depto, municipio, tipoPersona)
+        crosstabOriginal = pd.crosstab(original[var1],original[var2], margins=True).copy()
+        crosstabOriginal = crosstabOriginal.sort_values(by="All", ascending=False)
+        crosstabOriginal = crosstabOriginal.sort_values(by="All", ascending=False, axis=1)
+        crosstabOriginal = crosstabOriginal.drop("All")
+        crosstabOriginal = crosstabOriginal.drop("All", axis = 1)
+        crosstabOriginal = crosstabOriginal.iloc[:10, :10]
+        print("ORIGINAAAAAAL COLUMNAS")
+        #print(crosstabOriginal.columns)
+        print(crosstabOriginal.shape)
+        print("COMPARACION COLUMNAS")
+        #print(s.columns)
+        print(s.shape)
+        #print("ORIGINAAAAAAL index")
+        #print(crosstabOriginal.index)
+        #print("COMPARACION index")
+        #print(s.index)
+        #s = s[crosstabOriginal.index][crosstabOriginal.columns]
+
+
+        s = s.sort_values(by="All", ascending=False)
+        s = s.sort_values(by="All", ascending=False, axis=1)
+        s = s.drop("All")
+        s = s.drop("All", axis = 1)
+        s = s.iloc[:10, :10]
+
+
+
+
+    fig = go.Figure(data=go.Heatmap(
+                    z=s,
+                    y=s.index,
+                    x=s.columns))
+    fig.update_layout(
+        title=titulo,
+        xaxis_title=var1,
+        yaxis_title=var2,
+    )
+    return fig
 
 def consolidadoAnio(campo, datos_df, porcentajes=True, cambios=True):
-  campos = ['ANIO']
+  campos = ['ANIO'] 
   campos.append(campo)
   consolidado_anio_df = pd.DataFrame(datos_df.groupby(by=campos)['MES'].count()).reset_index()
   consolidado_anio_df = consolidado_anio_df.pivot(index=campo,columns='ANIO',values='MES').reset_index()
@@ -945,11 +1021,14 @@ def update_titulo(departamentoSeleccionado, municipioSeleccionado, mejoresPeores
     
 
     titulo = parte + " 10 - Nacional"
+
+    
     
     if departamentoSeleccionado != None:
-        titulo = parte + " 10 - " + departamentoSeleccionado
+        nombreDepto = departamentos_df[departamentos_df['COD_DEPTO'] == departamentoSeleccionado][['DEPARTAMENTO']].values[0][0]
+        titulo = parte + " 10 - " + nombreDepto
         if municipioSeleccionado != None:
-            titulo = parte + " 10 - " + municipioSeleccionado + " (" + departamentoSeleccionado + ")"
+            titulo = parte + " 10 - " + municipioSeleccionado + " (" + nombreDepto + ")"
 
     paciente = pqrs_df[pqrs_df['AFEC_ID'] == 518513]
     causas = paciente[['MOTIVO_ESPECIFICO', 'PATOLOGIA_1', 'PATOLOGIA_TIPO', 'CIE_10']]
@@ -965,7 +1044,6 @@ def update_titulo(departamentoSeleccionado, municipioSeleccionado, mejoresPeores
     #plt.savefig("assets/img/wordcloud_usuario.png")
     urlWC = app.get_asset_url("img/wordcloud_usuario.png")
     
-    print(type(fig))
     #dcc.Graph(id=‘graphs’, figure=fig_url)
     return [[html.I(className=icono), titulo], urlWC]
 
@@ -973,6 +1051,8 @@ def update_titulo(departamentoSeleccionado, municipioSeleccionado, mejoresPeores
 # #######################################################
 #           CALL BACK  - MAPA
 # #######################################################
+
+
 
 
 @app.callback(
@@ -991,28 +1071,22 @@ def update_mapa_principal(departamentoSeleccionado, municipioSeleccionado):
     zoom = 3
 
     if departamentoSeleccionado != None:
-        departamentosSeleccionados_df = departamentos_df[departamentos_df['DEPARTAMENTO'] == departamentoSeleccionado]
-        codDeptoSeleccionado = departamentosSeleccionados_df['COD_DEPTO'].iloc[0]
-        codDeptoSeleccionado = codDeptoSeleccionado.astype(int)
+        departamentosSeleccionados_df = departamentos_df[departamentos_df['COD_DEPTO'] == departamentoSeleccionado]
         
-        lat = (deptos_geo_df[deptos_geo_df['DPTO'] == codDeptoSeleccionado]['centroid']).values[0]['coordinates'][1]
-        lon = (deptos_geo_df[deptos_geo_df['DPTO'] == codDeptoSeleccionado]['centroid']).values[0]['coordinates'][0]
+        lat = (deptos_geo_df[deptos_geo_df['DPTO'] == departamentoSeleccionado]['centroid']).values[0]['coordinates'][1]
+        lon = (deptos_geo_df[deptos_geo_df['DPTO'] == departamentoSeleccionado]['centroid']).values[0]['coordinates'][0]
         
         centroide = {"lat": lat, "lon": lon}
-        zoom = 9
-        print("**** CENTROIDE  ****")
-        print(type(codDeptoSeleccionado))
+        zoom = 6
         
-        print(type(m_geo_df['COD_DEPTO']))
-        print("#####")
-        muncipiosEnDepto_df = m_geo_df[m_geo_df['COD_DEPTO'] == codDeptoSeleccionado]
+        muncipiosEnDepto_df = m_geo_df[m_geo_df['COD_DEPTO'] == departamentoSeleccionado]
         
-        print(muncipiosEnDepto_df)
         munpoint = go.Scattermapbox(
             lat = muncipiosEnDepto_df['LATITUD'],
             lon = muncipiosEnDepto_df['LONGITUD'],
             mode = 'markers',
-            text = muncipiosEnDepto_df['ID_ESPACIA']
+            text = muncipiosEnDepto_df['ID_ESPACIA'],
+            #marker = dict (size= , color = )
         )     
         capas.append(munpoint)       
         
@@ -1036,21 +1110,14 @@ def update_mapa_principal(departamentoSeleccionado, municipioSeleccionado):
     return fig
 
 
-""" 
 @app.callback(
-    dash.dependencies.Output(component_id='comparacion-departamento-dropdown', component_property='value'),
-    [dash.dependencies.Input(component_id='departamento-dropdown', component_property='value')]
+    dash.dependencies.Output(component_id='click_txt', component_property='children'),
+    [dash.dependencies.Input(component_id='linkSugeridos', component_property='n_clicks')]
 )
-def update_comparacion_depto_dropdown(depto):
-    #municipios = []
-    
-    if depto == None:
-    return municipios
+def clickEnLink(varC):
+    print(varC)
+    return "click click"
 
-
-
-
- """
 
 if __name__ == "__main__":
     app.run_server(debug=True)
